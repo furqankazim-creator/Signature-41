@@ -1,4 +1,4 @@
-import { Download, Receipt } from 'lucide-react'
+import { Receipt } from 'lucide-react'
 import { Card, CardLabel } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { InstallmentTable } from '@/components/crm/InstallmentTable'

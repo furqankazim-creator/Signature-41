@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, CreditCard, Phone, ShieldCheck, User } from 'lucide-react'
+import { ArrowRight, CreditCard, Phone, User } from 'lucide-react'
 import { usePortalAuthStore } from '@/store/portalAuthStore'
 import { Button } from '@/components/ui/button'
 import { Input, Label } from '@/components/ui/input'
