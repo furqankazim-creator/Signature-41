@@ -20,19 +20,31 @@ import {
   Download,
   CalendarCheck,
   TrendingUp,
-  CheckCircle2,
   Menu,
   X,
   MessageCircle,
+  Check,
 } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Button } from '@/components/ui/button'
 import { Input, Label, Select, Textarea } from '@/components/ui/input'
 import heroAerial from '@/assets/images/hero-aerial.jpg'
 import galleryGate from '@/assets/images/gallery-gate.jpg'
-import galleryMosque from '@/assets/images/gallery-mosque.jpg'
-import galleryPark from '@/assets/images/gallery-park.jpg'
-import galleryVilla from '@/assets/images/gallery-villa.jpg'
+import logo from '@/assets/images/logo.png'
+
+const EVENT_PORTRAIT_NUMBERS = new Set([2, 4, 5, 6, 7])
+
+const eventGalleryModules = import.meta.glob('@/assets/images/gallery/event-*.jpg', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>
+const EVENT_GALLERY = Object.keys(eventGalleryModules)
+  .map((key) => ({
+    n: Number(key.match(/event-(\d+)\.jpg$/)?.[1] ?? 0),
+    src: eventGalleryModules[key],
+  }))
+  .sort((a, b) => a.n - b.n)
+  .map(({ n, src }) => ({ src, portrait: EVENT_PORTRAIT_NUMBERS.has(n) }))
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/components/ui/toast'
 import { cn } from '@/lib/utils'
@@ -41,9 +53,7 @@ const NAV_LINKS = [
   { href: '#home', label: 'Home' },
   { href: '#about', label: 'About' },
   { href: '#master-plan', label: 'Master Plan' },
-  { href: '#amenities', label: 'Amenities' },
   { href: '#plots', label: 'Plots & Pricing' },
-  { href: '#payment-plan', label: 'Payment Plan' },
   { href: '#gallery', label: 'Gallery' },
   { href: '#contact', label: 'Contact' },
 ]
@@ -78,21 +88,25 @@ const MASTER_PLAN_BLOCKS = [
     n: '01',
     title: 'Premium Block — Boulevard Front',
     desc: 'Main-approach frontage with a dedicated commercial spine. Plot sizes of 200 and 400 sq yd, built for visibility and footfall.',
+    highlights: ['200 & 400 sq yd plots', 'Commercial spine frontage', 'Highest visibility & footfall'],
   },
   {
     n: '02',
     title: 'Overseas Block — Central Residential',
     desc: 'The heart of the community — mosque, park, and school within walking distance, with well-balanced mid-size residential plots.',
+    highlights: ['60–200 sq yd plots', 'Walk to mosque, park & school', 'Central community location'],
   },
   {
     n: '03',
     title: 'Officer Block — Garden Quarter',
     desc: 'A low-density enclave of villas and cottages arranged around green belts, designed for quiet, family-first living.',
+    highlights: ['Villas & cottages', 'Green-belt facing plots', 'Low density, family-first'],
   },
   {
     n: '04',
     title: 'Trader Block — Rear Expansion',
     desc: 'Entry-level sizes at the most accessible pricing in the scheme — an ideal starting point for first-time buyers.',
+    highlights: ['60–120 sq yd plots', 'Most accessible pricing', 'Ideal first-time buyer entry'],
   },
 ]
 
@@ -110,8 +124,10 @@ const AMENITIES = [
 
 type PlotCategory = 'Premium' | 'Overseas' | 'Officers' | 'Traders'
 
+const ALL_CATEGORIES: PlotCategory[] = ['Premium', 'Overseas', 'Officers', 'Traders']
+
 interface PlotSize {
-  code: string
+  code?: string
   size: string
   categories: PlotCategory[]
 }
@@ -121,37 +137,40 @@ const PLOT_TABS: { value: string; label: string; sizes: PlotSize[] }[] = [
     value: 'residential',
     label: 'Residential Plots',
     sizes: [
-      { code: 'N', size: '60 sq yd', categories: ['Overseas', 'Traders'] },
-      { code: 'L', size: '80 sq yd', categories: ['Premium', 'Traders'] },
-      { code: 'R', size: '120 sq yd', categories: ['Premium', 'Officers'] },
+      { code: 'N', size: '60 sq yd', categories: ['Traders'] },
+      { code: 'L', size: '80 sq yd', categories: ['Officers', 'Traders'] },
+      { code: 'R', size: '120 sq yd', categories: ['Overseas', 'Officers', 'Traders'] },
       { code: 'A', size: '200 sq yd', categories: ['Premium', 'Overseas', 'Officers'] },
-      { code: 'B', size: '400 sq yd', categories: ['Premium', 'Overseas'] },
+      { code: 'B', size: '400 sq yd', categories: ['Premium', 'Overseas', 'Officers'] },
     ],
   },
   {
     value: 'commercial',
     label: 'Commercial Plots',
     sizes: [
-      { code: 'C1', size: '120 sq yd', categories: ['Traders'] },
-      { code: 'C2', size: '200 sq yd', categories: ['Traders', 'Premium'] },
-      { code: 'C3', size: '400 sq yd', categories: ['Premium', 'Overseas'] },
+      { code: 'LS', size: '80 sq yd', categories: ['Traders'] },
+      { code: 'SR', size: '133 sq yd', categories: ['Traders', 'Officers'] },
+      { code: 'SA', size: '200 sq yd', categories: ['Overseas', 'Traders'] },
+      { code: 'SB', size: '400 sq yd', categories: ['Premium', 'Officers', 'Traders'] },
+      { code: 'FL', size: '1200 sq yd', categories: ['Premium'] },
+
     ],
   },
   {
     value: 'villas',
     label: 'Villas',
     sizes: [
-      { code: 'V1', size: '200 sq yd', categories: ['Premium', 'Officers'] },
-      { code: 'V2', size: '300 sq yd', categories: ['Premium', 'Overseas'] },
-      { code: 'V3', size: '400 sq yd', categories: ['Premium', 'Overseas'] },
+      { size: '60 sq yd', categories: ['Traders'] },
+      { size: '120 sq yd', categories: ['Officers'] },
+      { size: '200 sq yd', categories: [] },
     ],
   },
   {
     value: 'cottages',
     label: 'Cottages',
     sizes: [
-      { code: 'CT1', size: '120 sq yd', categories: ['Officers', 'Traders'] },
-      { code: 'CT2', size: '150 sq yd', categories: ['Premium', 'Officers'] },
+      { code: 'SR', size: '133 sq yd', categories: ['Officers'] },
+      { code: 'LS', size: '80 sq yd', categories: ['Traders'] },
     ],
   },
 ]
@@ -187,20 +206,32 @@ const GROWTH_DATA = [
   { stage: 'Possession', value: 245 },
 ]
 
-const GALLERY = [
-  { title: 'Master-planned layout', src: heroAerial },
-  { title: 'Signature villas', src: galleryVilla },
-  { title: 'Community mosque', src: galleryMosque },
-  { title: 'Central park spine', src: galleryPark },
-  { title: 'Grand entrance', src: galleryGate },
-]
+const GALLERY: { title: string; src: string; portrait: boolean }[] = EVENT_GALLERY.map(({ src, portrait }) => ({
+  title: 'MOU Signing Ceremony',
+  src,
+  portrait,
+}))
 
 const WHATSAPP_NUMBER = '923330335090'
 
-function AerialPhoto({ src, className, overlay = true }: { src: string; className?: string; overlay?: boolean }) {
+function AerialPhoto({
+  src,
+  className,
+  overlay = true,
+  fit = 'cover',
+}: {
+  src: string
+  className?: string
+  overlay?: boolean
+  fit?: 'cover' | 'contain'
+}) {
   return (
     <div className={cn('relative overflow-hidden', className)}>
-      <img src={src} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      <img
+        src={src}
+        alt=""
+        className={cn('absolute inset-0 h-full w-full', fit === 'cover' ? 'object-cover' : 'object-contain')}
+      />
       {overlay && <div className="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-navy-950/25 to-navy-900/10" />}
     </div>
   )
@@ -214,12 +245,54 @@ function FacebookIcon({ className }: { className?: string }) {
   )
 }
 
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M12 2c2.72 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.22.6 1.77 1.15.55.55.9 1.11 1.15 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.4.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.9 4.9 0 0 1-1.15 1.77 4.9 4.9 0 0 1-1.77 1.15c-.64.25-1.37.42-2.43.47-1.06.05-1.4.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.9 4.9 0 0 1-1.77-1.15 4.9 4.9 0 0 1-1.15-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.72 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.22 1.15-1.77.55-.55 1.11-.9 1.77-1.15.64-.25 1.37-.42 2.43-.47C8.94 2.01 9.28 2 12 2zm0 1.8c-2.67 0-2.99.01-4.04.06-.97.04-1.5.2-1.85.34-.46.18-.79.4-1.14.75-.35.35-.57.68-.75 1.14-.14.35-.3.88-.34 1.85-.05 1.05-.06 1.37-.06 4.04s.01 2.99.06 4.04c.04.97.2 1.5.34 1.85.18.46.4.79.75 1.14.35.35.68.57 1.14.75.35.14.88.3 1.85.34 1.05.05 1.37.06 4.04.06s2.99-.01 4.04-.06c.97-.04 1.5-.2 1.85-.34.46-.18.79-.4 1.14-.75.35-.35.57-.68.75-1.14.14-.35.3-.88.34-1.85.05-1.05.06-1.37.06-4.04s-.01-2.99-.06-4.04c-.04-.97-.2-1.5-.34-1.85a3.08 3.08 0 0 0-.75-1.14 3.08 3.08 0 0 0-1.14-.75c-.35-.14-.88-.3-1.85-.34C14.99 3.81 14.67 3.8 12 3.8zm0 3.06a5.14 5.14 0 1 1 0 10.28 5.14 5.14 0 0 1 0-10.28zm0 1.8a3.34 3.34 0 1 0 0 6.68 3.34 3.34 0 0 0 0-6.68zm5.34-1.99a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z" />
+    </svg>
+  )
+}
+
+function YoutubeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M23.5 6.9a3.02 3.02 0 0 0-2.12-2.14C19.5 4.3 12 4.3 12 4.3s-7.5 0-9.38.46A3.02 3.02 0 0 0 .5 6.9 31.6 31.6 0 0 0 0 12.5a31.6 31.6 0 0 0 .5 5.6 3.02 3.02 0 0 0 2.12 2.14c1.88.46 9.38.46 9.38.46s7.5 0 9.38-.46a3.02 3.02 0 0 0 2.12-2.14 31.6 31.6 0 0 0 .5-5.6 31.6 31.6 0 0 0-.5-5.6zM9.6 15.98V9.02l6.27 3.48-6.27 3.48z" />
+    </svg>
+  )
+}
+
+function TiktokIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M16.6 2h-3.2v13.6a3.1 3.1 0 1 1-2.2-2.97V9.3a6.3 6.3 0 1 0 5.4 6.24V8.9a7.9 7.9 0 0 0 4.6 1.47V7.2a4.5 4.5 0 0 1-4.6-4.6z" />
+    </svg>
+  )
+}
+
+function LinkedinIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M20.45 20.45h-3.56v-5.58c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.68H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45z" />
+    </svg>
+  )
+}
+
+const SOCIAL_LINKS = [
+  { name: 'Facebook', href: 'https://www.facebook.com/signature41', Icon: FacebookIcon },
+  { name: 'Instagram', href: 'https://www.instagram.com/signature41official/?hl=en', Icon: InstagramIcon },
+  { name: 'YouTube', href: 'https://www.youtube.com/@Signature41official', Icon: YoutubeIcon },
+  { name: 'TikTok', href: 'https://www.tiktok.com/@singnature41official', Icon: TiktokIcon },
+  { name: 'LinkedIn', href: 'https://www.linkedin.com/in/signature-forty-one-ab0a8a425/', Icon: LinkedinIcon },
+]
+
 function Logo({ dark = false }: { dark?: boolean }) {
   return (
     <a href="#home" className="flex items-center gap-2.5">
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-900 font-display text-base italic text-gold-400">
-        S
-      </span>
+      <img
+        src={logo}
+        alt="Signature 41"
+        className={cn('h-20 w-20 shrink-0 object-contain transition duration-300', dark && 'brightness-0 invert')}
+      />
       <span className="flex flex-col leading-none">
         <span className={cn('text-[10px] font-bold uppercase tracking-[0.18em]', dark ? 'text-cream-100/50' : 'text-navy-900/40')}>
           Scheme 41 · Karachi
@@ -234,19 +307,12 @@ function SectionTag({ children }: { children: React.ReactNode }) {
   return <p className="text-[11px] font-bold uppercase tracking-wider text-gold-600">{children}</p>
 }
 
-function CategoryTag({ label }: { label: string }) {
-  return (
-    <span className="rounded-full border border-gold-500/30 bg-gold-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-gold-700">
-      {label}
-    </span>
-  )
-}
-
 export default function Landing() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [menuOpen, setMenuOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [flippedBlocks, setFlippedBlocks] = useState<Record<string, boolean>>({})
 
   function scrollToContact(reason: string) {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
@@ -267,7 +333,7 @@ export default function Landing() {
     <div className="min-h-screen bg-cream-100">
       {/* Navbar */}
       <header className="sticky top-0 z-40 border-b border-navy-900/8 bg-cream-100/85 backdrop-blur">
-        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6">
+        <div className="mx-auto flex h-24 max-w-7xl items-center justify-between px-6">
           <Logo />
           <nav className="hidden items-center gap-7 text-sm font-medium text-navy-900/70 xl:flex">
             {NAV_LINKS.map((l) => (
@@ -287,7 +353,7 @@ export default function Landing() {
               Book Your Plot
             </Button>
           </div>
-          <button className="p-2 xl:hidden" onClick={() => setMenuOpen((v) => !v)} aria-label="Toggle menu">
+          <button className="p-2 text-navy-900 xl:hidden" onClick={() => setMenuOpen((v) => !v)} aria-label="Toggle menu">
             {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
@@ -315,10 +381,12 @@ export default function Landing() {
       {/* Hero */}
       <section id="home" className="relative flex min-h-screen items-center overflow-hidden">
         <AerialPhoto src={heroAerial} className="absolute inset-0" />
-        <div className="relative mx-auto max-w-5xl px-6 py-28 text-center sm:py-36">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold-400/40 bg-white/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-gold-300 backdrop-blur">
-            Scheme 41 · Karachi
-          </span>
+        <div className="relative mx-auto max-w-5xl px-6 pt-16 pb-28 text-center sm:pt-20 sm:pb-36">
+          <img 
+            src={logo} 
+            alt="Signature 41" 
+            className="mx-auto mb-8 h-32 w-32 rounded-3xl bg-white p-4 object-contain shadow-xl sm:h-44 sm:w-44 sm:p-6" 
+          />
           <h1 className="mt-6 font-display text-4xl font-semibold leading-[1.08] tracking-tight text-cream-50 sm:text-6xl">
             Signature 41 — Own Your Dreams.
           </h1>
@@ -339,14 +407,16 @@ export default function Landing() {
               <CalendarCheck className="h-4 w-4" /> Schedule a Site Visit
             </Button>
           </div>
+        </div>
 
-          <div className="mx-auto mt-14 grid max-w-4xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="absolute inset-x-0 bottom-0 border-t border-cream-50/10 bg-navy-950/85 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl flex-col divide-y divide-cream-50/10 sm:flex-row sm:divide-x sm:divide-y-0">
             {TRUST_BADGES.map((b) => (
               <div
                 key={b}
-                className="flex items-center gap-2 rounded-xl border border-cream-50/15 bg-white/5 px-4 py-3 text-left text-xs font-semibold text-cream-100/85 backdrop-blur"
+                className="flex flex-1 basis-0 items-center justify-center gap-2 px-4 py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-cream-50/90 sm:py-4 sm:text-[11px] lg:py-6"
               >
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-gold-400" />
+                <span className="h-1.5 w-1.5 shrink-0 rotate-45 bg-gold-400" />
                 {b}
               </div>
             ))}
@@ -361,7 +431,8 @@ export default function Landing() {
             <AerialPhoto
               src={galleryGate}
               overlay={false}
-              className="aspect-[4/5] rounded-3xl shadow-[0_20px_60px_-24px_rgba(15,27,51,0.35)] lg:aspect-square"
+              fit="contain"
+              className="aspect-[4/5] rounded-3xl bg-navy-950 shadow-[0_20px_60px_-24px_rgba(15,27,51,0.35)] lg:aspect-square"
             />
             <div>
               <SectionTag>A Beautiful Location</SectionTag>
@@ -402,43 +473,78 @@ export default function Landing() {
             </h2>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {MASTER_PLAN_BLOCKS.map((b) => (
-              <div key={b.n} className="rounded-2xl border border-navy-900/8 bg-white p-6 transition hover:border-gold-400/40 hover:shadow-lg">
-                <span className="font-display text-3xl font-semibold text-gold-500/70">{b.n}</span>
-                <h3 className="mt-3 font-display text-lg font-semibold text-navy-900">{b.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-navy-900/60">{b.desc}</p>
-              </div>
-            ))}
+            {MASTER_PLAN_BLOCKS.map((b) => {
+              const isFlipped = !!flippedBlocks[b.n]
+              return (
+                <button
+                  key={b.n}
+                  type="button"
+                  onClick={() => setFlippedBlocks((prev) => ({ ...prev, [b.n]: !prev[b.n] }))}
+                  className="group h-64 w-full text-left [perspective:1200px]"
+                  aria-pressed={isFlipped}
+                >
+                  <div
+                    className={cn(
+                      'relative h-full w-full transition-transform duration-500 [transform-style:preserve-3d]',
+                      isFlipped && '[transform:rotateY(180deg)]'
+                    )}
+                  >
+                    <div className="absolute inset-0 rounded-2xl border border-navy-900/8 bg-white p-6 [backface-visibility:hidden] group-hover:border-gold-400/40 group-hover:shadow-lg">
+                      <span className="font-display text-3xl font-semibold text-gold-500/70">{b.n}</span>
+                      <h3 className="mt-3 font-display text-lg font-semibold text-navy-900">{b.title}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-navy-900/60">{b.desc}</p>
+                      <span className="absolute bottom-4 right-4 text-[10px] font-bold uppercase tracking-wider text-gold-600/70">
+                        Tap for details
+                      </span>
+                    </div>
+                    <div className="absolute inset-0 rounded-2xl border border-gold-500/30 bg-navy-950 p-6 text-cream-50 [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                      <span className="font-display text-3xl font-semibold text-gold-400">{b.n}</span>
+                      <h3 className="mt-3 font-display text-base font-semibold text-cream-50">{b.title}</h3>
+                      <ul className="mt-3 space-y-1.5 text-xs leading-relaxed text-cream-100/70">
+                        {b.highlights.map((h) => (
+                          <li key={h} className="flex items-start gap-1.5">
+                            <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-gold-400" />
+                            {h}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
           </div>
           <p className="mt-8 rounded-xl border border-dashed border-gold-500/30 bg-gold-500/5 px-5 py-4 text-sm leading-relaxed text-navy-900/70">
             <strong className="font-semibold text-navy-900">Fair pricing by design —</strong> plots closer to the
             boulevard and central amenities are priced higher, while rear-block sizes stay accessible, so every
             buyer profile finds a fitting entry point.
           </p>
-        </div>
-      </section>
 
-      {/* Amenities */}
-      <section id="amenities" className="border-t border-navy-900/8 py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-12 max-w-xl">
-            <SectionTag>Amenities</SectionTag>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-navy-900 sm:text-4xl">
-              Everything within the gates.
-            </h2>
-          </div>
-          <div className="grid grid-cols-3 gap-4 sm:grid-cols-3 lg:grid-cols-9">
-            {AMENITIES.map((a) => (
-              <div
-                key={a.label}
-                className="flex flex-col items-center gap-3 rounded-2xl border border-navy-900/8 bg-white p-5 text-center transition hover:-translate-y-0.5 hover:border-gold-400/40 hover:shadow-lg"
-              >
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cream-200">
-                  <a.icon className="h-5 w-5 text-navy-800" />
-                </span>
-                <span className="text-[12px] font-semibold leading-tight text-navy-900">{a.label}</span>
-              </div>
-            ))}
+          {/* Amenities (Merged into Master Plan) */}
+          <div id="amenities" className="mt-20 pt-20 border-t border-navy-900/8">
+            <div className="mb-12 max-w-xl">
+              <SectionTag>Amenities</SectionTag>
+              <h2 className="mt-2 font-display text-3xl font-semibold text-navy-900 sm:text-4xl">
+                Everything within the gates.
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {AMENITIES.map((a, i) => (
+                <div
+                  key={a.label}
+                  style={{ animationDelay: `${i * 75}ms`, animationFillMode: 'backwards' }}
+                  className="animate-in fade-in slide-in-from-bottom-4 group flex flex-col items-center justify-center gap-4 border border-navy-900/10 bg-white px-6 py-10 text-center transition-all duration-300 hover:-translate-y-1 hover:border-gold-500 hover:bg-navy-950 hover:shadow-xl duration-500"
+                >
+                  <a.icon
+                    className="h-8 w-8 text-navy-900 transition-colors duration-300 group-hover:text-gold-400"
+                    strokeWidth={1.5}
+                  />
+                  <span className="text-xs font-bold uppercase tracking-wider text-gold-700 transition-colors duration-300 group-hover:text-cream-50">
+                    {a.label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -464,23 +570,46 @@ export default function Landing() {
 
             {PLOT_TABS.map((t) => (
               <TabsContent key={t.value} value={t.value} className="mt-8">
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-                  {t.sizes.map((s) => (
-                    <div
-                      key={s.code}
-                      className="rounded-2xl border border-navy-900/8 bg-white p-6 text-center transition hover:border-gold-400/40 hover:shadow-lg"
-                    >
-                      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-navy-900 font-display text-lg font-semibold text-gold-400">
-                        {s.code}
-                      </span>
-                      <p className="mt-4 font-display text-xl font-semibold text-navy-900">{s.size}</p>
-                      <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-                        {s.categories.map((c) => (
-                          <CategoryTag key={c} label={c} />
+                <div className="animate-in fade-in slide-in-from-bottom-2 overflow-hidden rounded-2xl border border-navy-900/8 bg-white shadow-sm duration-500">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[560px] border-collapse text-sm">
+                      <thead>
+                        <tr className="bg-navy-900 text-cream-50">
+                          <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider">Size</th>
+                          {ALL_CATEGORIES.map((c) => (
+                            <th key={c} className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider">
+                              {c}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {t.sizes.map((s, i) => (
+                          <tr
+                            key={s.code || s.size}
+                            style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'backwards' }}
+                            className={cn(
+                              'animate-in fade-in slide-in-from-left-1 group border-t border-navy-900/8 transition-colors duration-300 hover:bg-gold-500/10',
+                              i % 2 === 1 && 'bg-cream-50/60'
+                            )}
+                          >
+                            <td className="px-6 py-4 font-display font-semibold text-navy-900 transition-colors duration-300 group-hover:text-gold-700">
+                              {s.code ? `${s.code} = ${s.size}` : s.size}
+                            </td>
+                            {ALL_CATEGORIES.map((c) => (
+                              <td key={c} className="px-6 py-4">
+                                {s.categories.includes(c) ? (
+                                  <Check className="h-4 w-4 text-gold-600 transition-transform duration-300 group-hover:scale-125" />
+                                ) : (
+                                  <span className="text-navy-900/20">—</span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
                         ))}
-                      </div>
-                    </div>
-                  ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </TabsContent>
             ))}
@@ -491,109 +620,161 @@ export default function Landing() {
               Contact for Pricing <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-      </section>
 
-      {/* Payment Plan */}
-      <section id="payment-plan" className="border-t border-navy-900/8 py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-14 max-w-xl">
-            <SectionTag>Payment Plan</SectionTag>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-navy-900 sm:text-4xl">
-              A structured 5-year delivery plan.
-            </h2>
-          </div>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {ROADMAP.map((r, i) => (
-              <div key={r.year} className="relative">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-500 font-display text-sm font-bold text-navy-950">
-                    {i + 1}
-                  </span>
-                  {i < ROADMAP.length - 1 && <span className="hidden h-px flex-1 bg-navy-900/12 lg:block" />}
+          {/* Payment Plan (Merged into Plots & Pricing) */}
+          <div id="payment-plan" className="mt-20 relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy-950 via-navy-900 to-navy-950 px-6 py-16 text-cream-50 sm:p-20 shadow-xl">
+            <div className="mx-auto mb-14 max-w-2xl text-center">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gold-400">Development Roadmap</p>
+              <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">A structured 5-year delivery plan.</h2>
+              <div className="mx-auto mt-4 h-px w-12 bg-gold-500/50" />
+              <p className="mt-4 text-sm leading-relaxed text-cream-100/60">
+                Four defined stages, each with its own milestones — so you always know what stage your investment is
+                standing on.
+              </p>
+            </div>
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {ROADMAP.map((r, i) => (
+                <div
+                  key={r.year}
+                  style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'backwards' }}
+                  className="relative animate-in fade-in slide-in-from-bottom-4 duration-500"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold-500/50 font-display text-xs font-bold text-gold-400">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    {i < ROADMAP.length - 1 && <span className="hidden h-px flex-1 bg-cream-50/15 lg:block" />}
+                  </div>
+                  <p className="mt-4 text-[11px] font-bold uppercase tracking-wider text-gold-400">{r.year}</p>
+                  <h3 className="mt-1 font-display text-lg font-semibold text-cream-50">{r.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-cream-100/60">{r.desc}</p>
                 </div>
-                <p className="mt-4 text-[11px] font-bold uppercase tracking-wider text-gold-600">{r.year}</p>
-                <h3 className="mt-1 font-display text-lg font-semibold text-navy-900">{r.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-navy-900/60">{r.desc}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Investment Outlook */}
-      <section className="border-t border-navy-900/8 bg-navy-950 py-20 text-cream-50">
+      <section className="border-t border-navy-900/8 bg-cream-50 py-20">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-10 max-w-xl">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-gold-400">Investment Outlook</p>
-            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">Consistent Growth in Plot Rates</h2>
-          </div>
-          <div className="rounded-3xl border border-cream-50/10 bg-white/5 p-6 backdrop-blur">
-            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-gold-400">
-              <TrendingUp className="h-4 w-4" /> Illustrative value index (Launch = 100)
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gold-600">Investment Outlook</p>
+              <h2 className="mt-2 font-display text-3xl font-semibold text-navy-900 sm:text-4xl">
+                Consistent Growth in Plot Rates
+              </h2>
+              <p className="mt-5 max-w-md text-sm leading-relaxed text-navy-900/60">
+                Planned communities in developing zones tend to reward early entrants. As infrastructure lands and
+                amenities open, front-block frontage and mid-size residential plots historically carry the strongest
+                demand.
+              </p>
+              <p className="mt-6 flex items-start gap-2 text-xs leading-relaxed text-navy-900/45">
+                <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-600" />
+                <span>
+                  The chart shown is an illustrative representation of a typical development-linked value curve, not
+                  a forecast or a record of actual rates.{' '}
+                  <button
+                    type="button"
+                    onClick={() => scrollToContact('I would like verified current pricing')}
+                    className="font-semibold text-gold-600 underline decoration-gold-500/40 underline-offset-2 hover:text-gold-700"
+                  >
+                    Speak with our team for verified pricing.
+                  </button>
+                </span>
+              </p>
             </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={GROWTH_DATA} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="growthFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#d9a05b" stopOpacity={0.45} />
-                    <stop offset="100%" stopColor="#d9a05b" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} stroke="#fbfaf814" />
-                <XAxis dataKey="stage" axisLine={false} tickLine={false} tick={{ fill: '#fbfaf899', fontSize: 12 }} dy={8} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#fbfaf899', fontSize: 12 }} width={36} />
-                <Tooltip
-                  formatter={(value) => [`${value} index`, 'Illustrative value']}
-                  contentStyle={{
-                    borderRadius: 12,
-                    border: '1px solid #0f1b3314',
-                    fontSize: 12,
-                    background: '#fbfaf8',
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#d9a05b"
-                  strokeWidth={2.5}
-                  fill="url(#growthFill)"
-                  isAnimationActive={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+
+            <div className="rounded-3xl border border-navy-900/8 bg-white p-6 shadow-sm">
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={GROWTH_DATA} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="growthFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#8a2e2e" stopOpacity={0.18} />
+                      <stop offset="100%" stopColor="#8a2e2e" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} stroke="#0f1b330d" />
+                  <XAxis
+                    dataKey="stage"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#0f1b3366', fontSize: 11, fontWeight: 600 }}
+                    dy={8}
+                  />
+                  <YAxis hide domain={['dataMin - 20', 'dataMax + 20']} />
+                  <Tooltip
+                    formatter={(value) => [`${value} index`, 'Illustrative value']}
+                    contentStyle={{
+                      borderRadius: 12,
+                      border: '1px solid #0f1b3314',
+                      fontSize: 12,
+                      background: '#fbfaf8',
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#8a2e2e"
+                    strokeWidth={2.5}
+                    fill="url(#growthFill)"
+                    dot={{ r: 4, fill: '#fbfaf8', stroke: '#d9a05b', strokeWidth: 2 }}
+                    activeDot={{ r: 5, fill: '#d9a05b', stroke: '#8a2e2e', strokeWidth: 1.5 }}
+                    isAnimationActive={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <p className="mt-5 text-xs leading-relaxed text-cream-100/40">
-            This chart is illustrative only, based on typical master-planned scheme trends, and does not represent a
-            guarantee of future value or returns. Actual plot rates may vary.
-          </p>
         </div>
       </section>
 
       {/* Gallery */}
       <section id="gallery" className="border-t border-navy-900/8 py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-12 max-w-xl">
-            <SectionTag>Gallery</SectionTag>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-navy-900 sm:text-4xl">
-              A glimpse of the life planned here.
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-            {GALLERY.map((g) => (
-              <div key={g.title} className="group overflow-hidden rounded-2xl">
-                <div className="aspect-[3/4] overflow-hidden">
-                  <img
-                    src={g.src}
-                    alt={g.title}
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                  />
-                </div>
-                <p className="mt-2 text-xs font-semibold text-navy-900/70">{g.title}</p>
+        <div className="mx-auto max-w-4xl px-6 text-center">
+          <SectionTag>Gallery</SectionTag>
+          <h2 className="mt-2 font-display text-3xl font-semibold text-navy-900 sm:text-4xl">
+            A glimpse of the life planned here.
+          </h2>
+          <div className="mx-auto mt-4 h-px w-12 bg-gold-500/50" />
+          <p className="mt-4 text-sm leading-relaxed text-navy-900/55">
+            Moments from the Signature 41 M.O.U. signing ceremony and community events.
+          </p>
+        </div>
+        {GALLERY.length > 0 ? (
+          <div
+            className="mx-auto mt-12 grid max-w-7xl grid-cols-2 gap-4 px-6 [grid-auto-flow:dense] sm:grid-cols-3 lg:grid-cols-4"
+            style={{ gridAutoRows: '140px' }}
+          >
+            {GALLERY.map((g, i) => (
+              <div
+                key={i}
+                style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'backwards' }}
+                className={cn(
+                  'animate-in fade-in slide-in-from-bottom-4 group relative overflow-hidden rounded-2xl duration-700',
+                  g.portrait ? 'row-span-2' : 'row-span-1'
+                )}
+              >
+                <img
+                  src={g.src}
+                  alt={g.title}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-navy-950/10 to-transparent transition-opacity duration-500 group-hover:from-navy-950/90" />
+                <p className="absolute bottom-3 left-4 text-xs font-bold uppercase tracking-wider text-cream-50 transition-transform duration-500 group-hover:-translate-y-1">
+                  {g.title}
+                </p>
               </div>
             ))}
           </div>
-        </div>
+        ) : (
+          <div className="mx-auto mt-12 max-w-4xl px-6">
+            <div className="rounded-2xl border border-dashed border-navy-900/15 bg-cream-50 py-16 text-center text-sm font-medium text-navy-900/40">
+              Gallery photos coming soon.
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Contact */}
@@ -661,12 +842,23 @@ export default function Landing() {
                 <div className="flex items-center gap-3">
                   <Phone className="h-4 w-4 text-gold-400" /> 0333-0335090
                 </div>
-                <div className="flex items-center gap-3">
-                  <FacebookIcon className="h-4 w-4 text-gold-400" /> facebook.com/signature41estate
-                </div>
                 <div className="flex items-start gap-3">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold-400" /> Surjani Town, Sector 11-C
                 </div>
+              </div>
+              <div className="mt-6 flex items-center gap-3">
+                {SOCIAL_LINKS.map(({ name, href, Icon }) => (
+                  <a
+                    key={name}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={name}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-cream-50/10 text-gold-400 transition hover:bg-gold-500 hover:text-navy-950"
+                  >
+                    <Icon className="h-4 w-4" />
+                  </a>
+                ))}
               </div>
               <div className="mt-8 flex items-center gap-2 rounded-xl border border-gold-500/20 bg-gold-500/10 px-4 py-3 text-xs font-medium text-gold-300">
                 <Building2 className="h-4 w-4 shrink-0" /> Marketed exclusively by Neon Marketings.
@@ -707,10 +899,24 @@ export default function Landing() {
                 <li className="flex items-center gap-2">
                   <Phone className="h-3.5 w-3.5 text-gold-500" /> 0333-0335090
                 </li>
-                <li className="flex items-center gap-2">
-                  <FacebookIcon className="h-3.5 w-3.5 text-gold-500" /> facebook.com/signature41estate
+                <li className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-500" /> Surjani Town, Sector 11-C
                 </li>
               </ul>
+              <div className="mt-4 flex items-center gap-2.5">
+                {SOCIAL_LINKS.map(({ name, href, Icon }) => (
+                  <a
+                    key={name}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={name}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-900/8 text-navy-900/55 transition hover:bg-gold-500 hover:text-navy-950"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
           <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-navy-900/8 pt-6 text-xs text-navy-900/40 sm:flex-row">

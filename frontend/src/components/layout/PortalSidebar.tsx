@@ -11,6 +11,7 @@ import { PORTAL_NAV_ITEMS } from '@/lib/constants'
 import { usePortalAuthStore } from '@/store/portalAuthStore'
 import { usePortalDataStore } from '@/store/portalDataStore'
 import { cn } from '@/lib/utils'
+import logo from '@/assets/images/logo.png'
 
 const ICONS = { Home, Wallet, Bell, Headphones }
 
@@ -32,9 +33,7 @@ export default function PortalSidebar() {
     <aside className="fixed inset-y-0 left-0 z-30 flex w-[272px] flex-col border-r border-cream-50/8 bg-navy-950 text-cream-50">
       {/* Logo */}
       <div className="flex h-[72px] items-center gap-2.5 px-6">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cream-50/10 font-display text-base italic text-gold-400">
-          S
-        </span>
+        <img src={logo} alt="Signature 41" className="h-12 w-12 shrink-0 object-contain" />
         <span className="flex flex-col leading-none">
           <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-cream-100/45">Buyer</span>
           <span className="font-display text-base font-semibold">Portal</span>

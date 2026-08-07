@@ -4,7 +4,6 @@ import { ArrowRight, Lock, Mail, ShieldCheck } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import { Input, Label } from '@/components/ui/input'
-import { ADMIN_EMAIL, ADMIN_PASSWORD } from '@/lib/constants'
 
 export default function Login() {
   const login = useAuthStore((s) => s.login)
@@ -91,7 +90,6 @@ export default function Login() {
                   id="email"
                   type="email"
                   autoComplete="username"
-                  placeholder="admin@plotmaster.com"
                   className="pl-11"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -126,12 +124,7 @@ export default function Login() {
               {submitting ? 'Signing in…' : 'Enter CRM'} {!submitting && <ArrowRight className="h-4 w-4" />}
             </Button>
 
-            <p className="rounded-xl border border-dashed border-navy-900/15 px-3.5 py-2.5 text-center text-xs text-navy-900/50">
-              Demo credentials &middot;{' '}
-              <span className="font-semibold text-navy-900/70">
-                {ADMIN_EMAIL} / {ADMIN_PASSWORD}
-              </span>
-            </p>
+
           </form>
 
           <div className="mt-6 flex items-center justify-between">

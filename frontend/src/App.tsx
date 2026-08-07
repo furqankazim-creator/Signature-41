@@ -6,6 +6,7 @@ import CrmLayout from '@/components/layout/CrmLayout'
 import { useDataStore } from '@/store/dataStore'
 import Landing from '@/pages/Landing'
 import Login from '@/pages/Login'
+import FormViewer from '@/pages/FormViewer'
 import Dashboard from '@/pages/crm/Dashboard'
 import SiteMap from '@/pages/crm/SiteMap'
 import Inventory from '@/pages/crm/Inventory'
@@ -37,6 +38,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forms/registration" element={<FormViewer />} />
 
           <Route element={<ProtectedRoute />}>
             <Route element={<CrmLayout />}>

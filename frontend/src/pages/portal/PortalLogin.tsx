@@ -4,6 +4,7 @@ import { ArrowRight, CreditCard, Phone, User } from 'lucide-react'
 import { usePortalAuthStore } from '@/store/portalAuthStore'
 import { Button } from '@/components/ui/button'
 import { Input, Label } from '@/components/ui/input'
+import logo from '@/assets/images/logo.png'
 
 export default function PortalLogin() {
   const login = usePortalAuthStore((s) => s.login)
@@ -43,9 +44,7 @@ export default function PortalLogin() {
         <div className="pointer-events-none absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold-500/5 blur-3xl" />
 
         <Link to="/" className="relative flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cream-50/10 font-display text-base italic text-gold-400">
-            S
-          </span>
+          <img src={logo} alt="Signature 41" className="h-14 w-14 shrink-0 object-contain brightness-0 invert" />
           <span className="flex flex-col leading-none">
             <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-cream-100/50">Estate</span>
             <span className="font-display text-base font-semibold">Signature 41</span>
@@ -86,9 +85,7 @@ export default function PortalLogin() {
       <div className="flex items-center justify-center bg-cream-100 p-6 sm:p-10">
         <div className="w-full max-w-sm">
           <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-900 font-display text-base italic text-gold-400">
-              S
-            </span>
+            <img src={logo} alt="Signature 41" className="h-14 w-14 shrink-0 object-contain" />
             <span className="font-display text-base font-semibold text-navy-900">Signature 41</span>
           </div>
 

@@ -1,6 +1,9 @@
-import { Phone, MessageCircle, Mail, MapPin, Clock, Building2 } from 'lucide-react'
+import { Phone, MessageCircle, Mail, MapPin, Clock, Building2, FileText } from 'lucide-react'
 import { Card, CardLabel } from '@/components/ui/card'
 import { usePortalDataStore } from '@/store/portalDataStore'
+
+const REGISTRATION_FORM_URL = `${typeof window !== 'undefined' ? window.location.origin : ''}/forms/registration`
+const REGISTRATION_FORM_QR = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(REGISTRATION_FORM_URL)}`
 
 export default function PortalSupport() {
   const agent = usePortalDataStore((s) => s.agent)
@@ -68,6 +71,20 @@ export default function PortalSupport() {
                 </a>
               )}
             </div>
+          </Card>
+
+          {/* Registration Form */}
+          <Card className="flex flex-col items-center justify-center p-6 text-center">
+            <CardLabel>Registration Form</CardLabel>
+            <img
+              src={REGISTRATION_FORM_QR}
+              alt="Scan to open the registration form"
+              className="mt-4 h-40 w-40 rounded-xl border border-navy-900/10 p-2"
+            />
+            <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-navy-900">
+              <FileText className="h-4 w-4 text-gold-600" /> Scan to open the form
+            </p>
+            <p className="mt-1 text-xs text-navy-900/50">Fill it out and bring it to the sales office to complete booking.</p>
           </Card>
 
           {/* Office Info */}
