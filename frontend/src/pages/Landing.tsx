@@ -330,7 +330,7 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-100">
+    <div className="landing-deep-red min-h-screen bg-cream-100">
       {/* Navbar */}
       <header className="sticky top-0 z-40 border-b border-navy-900/8 bg-cream-100/85 backdrop-blur">
         <div className="mx-auto flex h-24 max-w-7xl items-center justify-between px-6">
@@ -759,7 +759,10 @@ export default function Landing() {
                   src={g.src}
                   alt={g.title}
                   loading="lazy"
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                  className={cn(
+                    'h-full w-full object-cover transition duration-500 group-hover:scale-110',
+                    g.portrait ? 'object-top' : 'object-center'
+                  )}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-navy-950/10 to-transparent transition-opacity duration-500 group-hover:from-navy-950/90" />
                 <p className="absolute bottom-3 left-4 text-xs font-bold uppercase tracking-wider text-cream-50 transition-transform duration-500 group-hover:-translate-y-1">

@@ -62,6 +62,15 @@
   border-color: var(--color-cream-200);
 }
 
+/* Landing page only: deep dark red, matched to the Signature 41 logo */
+.landing-deep-red {
+  --color-navy-950: #3d0000;
+  --color-navy-900: #560000;
+  --color-navy-800: #700000;
+  --color-navy-700: #8b0000;
+  --color-navy-600: #a5000a;
+}
+
 html {
   scroll-behavior: smooth;
 }
