@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
@@ -32,7 +32,7 @@ import heroAerial from '@/assets/images/hero-aerial.jpg'
 import galleryGate from '@/assets/images/gallery-gate.jpg'
 import logo from '@/assets/images/logo.png'
 
-const EVENT_PORTRAIT_NUMBERS = new Set([2, 4, 5, 6, 7])
+const EVENT_PORTRAIT_NUMBERS = new Set([1, 2, 4, 7, 9])
 
 const eventGalleryModules = import.meta.glob('@/assets/images/gallery/event-*.jpg', {
   eager: true,
@@ -44,7 +44,7 @@ const EVENT_GALLERY = Object.keys(eventGalleryModules)
     src: eventGalleryModules[key],
   }))
   .sort((a, b) => a.n - b.n)
-  .map(({ n, src }) => ({ src, portrait: EVENT_PORTRAIT_NUMBERS.has(n) }))
+  .map(({ n, src }) => ({ n, src, portrait: EVENT_PORTRAIT_NUMBERS.has(n) }))
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/components/ui/toast'
 import { cn } from '@/lib/utils'
@@ -206,7 +206,8 @@ const GROWTH_DATA = [
   { stage: 'Possession', value: 245 },
 ]
 
-const GALLERY: { title: string; src: string; portrait: boolean }[] = EVENT_GALLERY.map(({ src, portrait }) => ({
+const GALLERY: { n: number; title: string; src: string; portrait: boolean }[] = EVENT_GALLERY.map(({ n, src, portrait }) => ({
+  n,
   title: 'MOU Signing Ceremony',
   src,
   portrait,
@@ -233,6 +234,55 @@ function AerialPhoto({
         className={cn('absolute inset-0 h-full w-full', fit === 'cover' ? 'object-cover' : 'object-contain')}
       />
       {overlay && <div className="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-navy-950/25 to-navy-900/10" />}
+    </div>
+  )
+}
+
+function ImageSlider({
+  images,
+  className,
+  intervalMs = 4000,
+}: {
+  images: string[]
+  className?: string
+  intervalMs?: number
+}) {
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    if (images.length < 2) return
+    const timer = setInterval(() => {
+      setIndex((i) => (i + 1) % images.length)
+    }, intervalMs)
+    return () => clearInterval(timer)
+  }, [images.length, intervalMs])
+
+  return (
+    <div className={cn('relative overflow-hidden', className)}>
+      {images.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt=""
+          className={cn(
+            'absolute inset-0 h-full w-full object-contain transition-opacity duration-1000 ease-in-out',
+            i === index ? 'opacity-100' : 'opacity-0'
+          )}
+        />
+      ))}
+      {images.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+          {images.map((src, i) => (
+            <button
+              key={src}
+              type="button"
+              aria-label={`Show slide ${i + 1}`}
+              onClick={() => setIndex(i)}
+              className={cn('h-1.5 rounded-full transition-all', i === index ? 'w-6 bg-cream-50' : 'w-1.5 bg-cream-50/40')}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -382,10 +432,10 @@ export default function Landing() {
       <section id="home" className="relative flex min-h-screen items-center overflow-hidden">
         <AerialPhoto src={heroAerial} className="absolute inset-0" />
         <div className="relative mx-auto max-w-5xl px-6 pt-16 pb-28 text-center sm:pt-20 sm:pb-36">
-          <img 
-            src={logo} 
-            alt="Signature 41" 
-            className="mx-auto mb-8 h-32 w-32 rounded-3xl bg-white p-4 object-contain shadow-xl sm:h-44 sm:w-44 sm:p-6" 
+          <img
+            src={logo}
+            alt="Signature 41"
+            className="mx-auto mb-8 h-32 w-32 rounded-3xl bg-white p-4 object-contain shadow-xl sm:h-44 sm:w-44 sm:p-6"
           />
           <h1 className="mt-6 font-display text-4xl font-semibold leading-[1.08] tracking-tight text-cream-50 sm:text-6xl">
             Signature 41 — Own Your Dreams.
@@ -428,12 +478,15 @@ export default function Landing() {
       <section id="about" className="border-t border-navy-900/8 py-20">
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
-            <AerialPhoto
-              src={galleryGate}
-              overlay={false}
-              fit="contain"
-              className="aspect-[4/5] rounded-3xl bg-navy-950 shadow-[0_20px_60px_-24px_rgba(15,27,51,0.35)] lg:aspect-square"
-            />
+            <div>
+              <ImageSlider
+                images={[galleryGate]}
+                className="aspect-[1600/907] rounded-3xl bg-navy-950 shadow-[0_20px_60px_-24px_rgba(15,27,51,0.35)]"
+              />
+              <p className="mt-5 text-center font-display text-xl font-semibold uppercase tracking-wider text-navy-900 sm:text-2xl">
+                Core Marketing and Strategic Members
+              </p>
+            </div>
             <div>
               <SectionTag>A Beautiful Location</SectionTag>
               <h2 className="mt-2 font-display text-3xl font-semibold text-navy-900 sm:text-4xl">
@@ -761,7 +814,7 @@ export default function Landing() {
                   loading="lazy"
                   className={cn(
                     'h-full w-full object-cover transition duration-500 group-hover:scale-110',
-                    g.portrait ? 'object-top' : 'object-center'
+                    g.n === 1 ? 'object-[50%_20%]' : (g.portrait ? 'object-top' : 'object-center')
                   )}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-navy-950/10 to-transparent transition-opacity duration-500 group-hover:from-navy-950/90" />
